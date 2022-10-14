@@ -1,6 +1,9 @@
 plugins {
     kotlin("jvm")
 }
+
+apply(from = "${rootProject.projectDir}/plugin_maven_publish.gradle")
+
 @Suppress("UNCHECKED_CAST")
 dependencies {
     implementation(kotlin("stdlib"))

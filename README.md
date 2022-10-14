@@ -2,6 +2,24 @@
 
 use ksp annotation organize the order of tasks.
 
+## usage
+
+add gradle
+
+```groovy
+XX {
+    repositories {
+        mavenCentral()
+    }
+}
+
+
+dependencies {
+    implementation 'com.lwjlol.initializer:core:0.1.0'
+    ksp 'com.lwjlol.initializer:compiler:0.1.0'
+}
+```
+
 ```kotlin
 @Initialization(
     tasks = [
@@ -61,4 +79,5 @@ initializer.init(this, debug = true, callback = object : Callback {
 
 ## thanks
 
-https://github.com/wurensen/TaskScheduler
+* https://github.com/wurensen/TaskScheduler
+* https://github.com/johnsonlee/initializr

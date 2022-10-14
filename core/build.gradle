@@ -3,9 +3,11 @@ plugins {
     id 'kotlin'
 }
 
+apply from: "${rootProject.projectDir}/plugin_maven_publish.gradle"
+
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
     compileOnly "com.didiglobal.booster:booster-android-api:4.13.0"
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'com.didiglobal.booster:booster-android-api:4.13.0'
