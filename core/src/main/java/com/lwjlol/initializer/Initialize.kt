@@ -61,7 +61,7 @@ abstract class Initializer {
 
 
 interface Callback {
-    fun onInitializationStart(task: InitializeTask)
+    fun onInitializationStart(firstTask: InitializeTask)
 
     fun onTaskStart(task: InitializeTask)
 

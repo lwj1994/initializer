@@ -1,4 +1,4 @@
-## initializr
+## initializer
 
 use ksp annotation organize the order of tasks.
 
@@ -23,14 +23,40 @@ class Task3 : TestTask("Task3")
 
 @Task(dependencies = [Task3::class])
 class Task4 : TestTask("Task4")
+```
 
+then execute init:
+
+```kotlin
+val initializer = Initializer.Builder(AppInitializer::class.java).build()
+initializer.init(this, debug = true, callback = object : Callback {
+    override fun onInitializationStart(firstTask: InitializeTask) {
+
+    }
+
+    override fun onTaskStart(task: InitializeTask) {
+
+    }
+
+    override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
+
+    }
+
+    override fun onInitializationComplete(
+        lastTask: InitializeTask,
+        totalTimeConsuming: Long
+    ) {
+
+    }
+
+})
 ```
 
 ## proguard
 
 ```java
 -keep class *extends com.lwjlol.initializer.InitializeTask
-        -keep class *extends com.lwjlol.initializer.Initializer
+-keep class *extends com.lwjlol.initializer.Initializer
 ```
 
 ## thanks

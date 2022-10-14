@@ -23,8 +23,8 @@ class MainActivity : AppCompatActivity() {
             val textView = findViewById<TextView>(R.id.A)
             textView.text = ""
             Test.initializerA.init(this, debug = true, callback = object : Callback {
-                override fun onInitializationStart(task: InitializeTask) {
-                    textView.appendd("onInitializationStart, first is ${task::class.qualifiedName}")
+                override fun onInitializationStart(firstTask: InitializeTask) {
+                    textView.appendd("onInitializationStart, first is ${firstTask::class.qualifiedName}")
                 }
 
                 override fun onTaskStart(task: InitializeTask) {
@@ -50,8 +50,8 @@ class MainActivity : AppCompatActivity() {
             val textView = findViewById<TextView>(R.id.A)
             textView.text = ""
             Test.initializerB.init(this, debug = true, callback = object : Callback {
-                override fun onInitializationStart(task: InitializeTask) {
-                    textView.appendd("onInitializationStart, first is ${task::class.qualifiedName}")
+                override fun onInitializationStart(firstTask: InitializeTask) {
+                    textView.appendd("onInitializationStart, first is ${firstTask::class.qualifiedName}")
                 }
 
                 override fun onTaskStart(task: InitializeTask) {
