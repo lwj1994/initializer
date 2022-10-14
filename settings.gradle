@@ -12,6 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "TaskScheduler"
+rootProject.name = "initializer"
 include ':app'
-include ':taskscheduler'
+include ':core'
+include ':compiler'
