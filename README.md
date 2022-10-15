@@ -1,4 +1,5 @@
 ## initializer
+![](https://maven-badges.herokuapp.com/maven-central/com.lwjlol.initializer/core/badge.svg?style=for-the-badge)
 
 use ksp annotation organize the order of tasks.
 
