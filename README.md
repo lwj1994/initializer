@@ -74,8 +74,8 @@ initializer.init(this, debug = true, callback = object : Callback {
 ## proguard
 
 ```java
--keep class *extends com.lwjlol.initializer.InitializeTask
-        -keep class *extends com.lwjlol.initializer.Initializer
+-keep class * extends com.lwjlol.initializer.InitializeTask
+-keep class * extends com.lwjlol.initializer.Initializer
 ```
 
 ## thanks
