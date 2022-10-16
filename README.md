@@ -75,7 +75,7 @@ initializer.init(this, debug = true, callback = object : Callback {
 
 ```java
 -keep class *extends com.lwjlol.initializer.InitializeTask
--keep class *extends com.lwjlol.initializer.Initializer
+        -keep class *extends com.lwjlol.initializer.Initializer
 ```
 
 ## thanks
