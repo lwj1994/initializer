@@ -24,22 +24,22 @@ class MainActivity : AppCompatActivity() {
             textView.text = ""
             Test.initializerA.init(this, debug = true, callback = object : Callback {
                 override fun onInitializationStart(firstTask: InitializeTask) {
-                    textView.appendd("onInitializationStart, first is ${firstTask::class.qualifiedName}")
+                    textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
                 }
 
                 override fun onTaskStart(task: InitializeTask) {
-                    textView.appendd("onTaskStart ${task::class.qualifiedName}, dependency ${task.dependencies.toList()}")
+                    textView.appendd("onTaskStart ${task::class.simpleName}, dependency ${task.dependencies.toList()}")
                 }
 
                 override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
-                    textView.appendd("onTaskComplete ${task::class.qualifiedName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms")
+                    textView.appendd("onTaskComplete ${task::class.simpleName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms")
                 }
 
                 override fun onInitializationComplete(
                     lastTask: InitializeTask,
                     totalTimeConsuming: Long
                 ) {
-                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.qualifiedName}")
+                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}")
                 }
 
             })
@@ -51,22 +51,22 @@ class MainActivity : AppCompatActivity() {
             textView.text = ""
             Test.initializerB.init(this, debug = true, callback = object : Callback {
                 override fun onInitializationStart(firstTask: InitializeTask) {
-                    textView.appendd("onInitializationStart, first is ${firstTask::class.qualifiedName}")
+                    textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
                 }
 
                 override fun onTaskStart(task: InitializeTask) {
-                    textView.appendd("onTaskStart ${task::class.qualifiedName}, dependency ${task.dependencies.toList()}")
+                    textView.appendd("onTaskStart ${task::class.simpleName}, dependency ${task.dependencies.map { it.substringAfterLast('.') }.toList()}")
                 }
 
                 override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
-                    textView.appendd("onTaskComplete ${task::class.qualifiedName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms")
+                    textView.appendd("onTaskComplete ${task::class.simpleName}, dependency ${task.dependencies.map { it.substringAfterLast('.') }.toList()}, timeConsuming = $timeConsuming ms")
                 }
 
                 override fun onInitializationComplete(
                     lastTask: InitializeTask,
                     totalTimeConsuming: Long
                 ) {
-                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.qualifiedName}")
+                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}")
                 }
 
             })

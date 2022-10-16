@@ -47,7 +47,14 @@ class Task3 : TestTask("Task3")
 @Task(dependencies = [Task3::class])
 class Task4 : TestTask("Task4")
 
-class Task5 : TestTask("Task5")
+class Task5 : TestTask("Task5"){
+    override suspend fun initialize(context: InitializeContext) {
+        withContext(Dispatchers.Default) {
+            delay(4000)
+            println("$name executed completely")
+        }
+    }
+}
 
 class Task6 : TestTask("Task6")
 
@@ -69,3 +76,5 @@ open class TestTask(val name: String) : InitializeTask() {
         }
     }
 }
+
+
