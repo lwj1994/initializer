@@ -11,7 +11,7 @@ import android.content.Context as AndroidContext
 abstract class Initializer {
     private val allTasks: MutableList<InitializeTask> = mutableListOf()
     private val taskGraphBuilder = DirectedAcyclicGraph.Builder<InitializeTask>()
-    private val defaultScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val defaultScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     fun addTask(task: InitializeTask, last: Boolean = false) {
         allTasks.add(task)
@@ -21,6 +21,45 @@ abstract class Initializer {
             }
         }
     }
+
+
+    inline fun init(
+        context: AndroidContext,
+        scope: CoroutineScope = defaultScope,
+        debug: Boolean = false,
+        crossinline onInitializationStart: (firstTask: InitializeTask) -> Unit = {},
+        crossinline onTaskStart: (task: InitializeTask) -> Unit = {},
+        crossinline onTaskComplete: (task: InitializeTask, timeConsuming: Long) -> Unit = { _, _ -> },
+        crossinline onInitializationComplete: (
+            lastTask: InitializeTask,
+            totalTimeConsuming: Long
+        ) -> Unit = { _, _ ->
+
+        },
+    ) {
+        init(context, scope, debug, object : Callback {
+            override fun onInitializationStart(firstTask: InitializeTask) {
+                onInitializationStart(firstTask)
+            }
+
+            override fun onTaskStart(task: InitializeTask) {
+                onTaskStart(task)
+            }
+
+            override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
+                onTaskComplete(task, timeConsuming)
+            }
+
+            override fun onInitializationComplete(
+                lastTask: InitializeTask,
+                totalTimeConsuming: Long
+            ) {
+                onInitializationComplete(lastTask, totalTimeConsuming)
+            }
+
+        })
+    }
+
 
     fun init(
         context: AndroidContext,
