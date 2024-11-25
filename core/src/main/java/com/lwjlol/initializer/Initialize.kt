@@ -11,9 +11,15 @@ import android.content.Context as AndroidContext
 abstract class Initializer {
     private val allTasks: MutableList<InitializeTask> = mutableListOf()
     private val taskGraphBuilder = DirectedAcyclicGraph.Builder<InitializeTask>()
-    val defaultScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var _config = defaultConfig
 
-    fun addTask(task: InitializeTask, last: Boolean = false) {
+    val config: InitializeConfig
+        get() = _config
+
+    fun addTask(
+        task: InitializeTask,
+        last: Boolean = false,
+    ) {
         allTasks.add(task)
         if (last) {
             allTasks.forEach {
@@ -22,57 +28,17 @@ abstract class Initializer {
         }
     }
 
-
-    inline fun init(
-        context: AndroidContext,
-        scope: CoroutineScope = defaultScope,
-        debug: Boolean = false,
-        crossinline onInitializationStart: (firstTask: InitializeTask) -> Unit = {},
-        crossinline onTaskStart: (task: InitializeTask) -> Unit = {},
-        crossinline onTaskComplete: (task: InitializeTask, timeConsuming: Long) -> Unit = { _, _ -> },
-        crossinline onInitializationComplete: (
-            lastTask: InitializeTask,
-            totalTimeConsuming: Long
-        ) -> Unit = { _, _ ->
-
-        },
-    ) {
-        init(context, scope, debug, object : Callback {
-            override fun onInitializationStart(firstTask: InitializeTask) {
-                onInitializationStart(firstTask)
-            }
-
-            override fun onTaskStart(task: InitializeTask) {
-                onTaskStart(task)
-            }
-
-            override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
-                onTaskComplete(task, timeConsuming)
-            }
-
-            override fun onInitializationComplete(
-                lastTask: InitializeTask,
-                totalTimeConsuming: Long
-            ) {
-                onInitializationComplete(lastTask, totalTimeConsuming)
-            }
-
-        })
-    }
-
-
     fun init(
         context: AndroidContext,
-        scope: CoroutineScope = defaultScope,
-        debug: Boolean = false,
-        callback: Callback? = null
+        config: InitializeConfig = defaultConfig,
     ) {
-        val taskScheduler = InitializeTaskScheduler(
-            context,
-            scope,
-            taskGraphBuilder.build(debug),
-            callback = callback
-        )
+        _config = config
+        val taskScheduler =
+            InitializeTaskScheduler(
+                context,
+                config,
+                taskGraphBuilder.build(config.isDebug),
+            )
         taskScheduler.schedule(allTasks)
     }
 
@@ -81,13 +47,13 @@ abstract class Initializer {
             taskGraphBuilder.addNode(task)
         } else {
             task.dependencies.forEach { dependencyQualifiedName ->
-                val dependencyTask = allTasks.find {
-                    it::class.qualifiedName == dependencyQualifiedName
-                } ?: return@forEach
+                val dependencyTask =
+                    allTasks.find {
+                        it::class.qualifiedName == dependencyQualifiedName
+                    } ?: return@forEach
                 taskGraphBuilder.addEdge(dependencyTask, task)
             }
         }
-
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -98,19 +64,23 @@ abstract class Initializer {
     }
 }
 
-
-interface Callback {
+interface InitializeCallback {
     fun onInitializationStart(firstTask: InitializeTask)
 
     fun onTaskStart(task: InitializeTask)
 
-    fun onTaskComplete(task: InitializeTask, timeConsuming: Long)
+    fun onTaskComplete(
+        task: InitializeTask,
+        timeConsuming: Long,
+    )
 
-    fun onInitializationComplete(lastTask: InitializeTask, totalTimeConsuming: Long)
+    fun onInitializationComplete(
+        lastTask: InitializeTask,
+        totalTimeConsuming: Long,
+    )
 }
 
-
-abstract class InitializeTask {
+abstract class InitializeTask(val initializer: Initializer) {
     val dependencies: Array<String>
         get() = _dependencies.toTypedArray()
     private val _dependencies = mutableListOf<String>()
@@ -120,4 +90,50 @@ abstract class InitializeTask {
     fun addDependency(qualifiedName: String) {
         _dependencies.add(qualifiedName)
     }
+
+    /**
+     * 标记当前 task 运行在哪个进程
+     */
+    abstract val runProcessScope: RunProcessScope
+
+    suspend fun execute(context: InitializeContext) {
+        when (runProcessScope) {
+            RunProcessScope.mainProcess -> {
+                if (initializer.config.isMainProcess()) {
+                    initialize(context)
+                }
+            }
+
+            RunProcessScope.subProcess -> {
+                if (!initializer.config.isMainProcess()) {
+                    initialize(context)
+                }
+            }
+
+            RunProcessScope.all -> {
+                initialize(context)
+            }
+        }
+    }
 }
+
+enum class RunProcessScope {
+    mainProcess,
+    subProcess,
+    all,
+}
+
+abstract class InitializeConfig(
+    val callback: InitializeCallback? = null,
+    val isDebug: Boolean = false,
+    val coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+) {
+    abstract fun isMainProcess(): Boolean
+}
+
+val defaultConfig =
+    object : InitializeConfig() {
+        override fun isMainProcess(): Boolean {
+            return true
+        }
+    }

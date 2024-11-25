@@ -1,6 +1,5 @@
 package com.lwjlol.initializer
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -17,14 +16,14 @@ import android.content.Context as AndroidContext
  */
 internal class InitializeTaskScheduler(
     val appContext: AndroidContext,
-    val scope: CoroutineScope,
+    val config: InitializeConfig,
     val taskGraph: DirectedAcyclicGraph<InitializeTask>,
-    val callback: Callback? = null
 ) {
     private val mutexTaskInitializedCounter = Mutex()
     private var taskInitializedCounter = 0
-    private val context = InitializeContext(appContext = appContext, coroutineScope = scope)
-    private var inited = false
+    private val context =
+        InitializeContext(appContext = appContext, coroutineScope = config.coroutineScope)
+    private var initialized = false
 
     /**
      * 任务状态
@@ -34,9 +33,10 @@ internal class InitializeTaskScheduler(
     private var startTime = 0L
 
     init {
-        taskStates = taskGraph.graph.mapValuesTo(mutableMapOf()) {
-            State.INIT
-        }
+        taskStates =
+            taskGraph.graph.mapValuesTo(mutableMapOf()) {
+                State.INIT
+            }
     }
 
     /**
@@ -47,7 +47,6 @@ internal class InitializeTaskScheduler(
     private fun getInitializeTaskState(task: InitializeTask): State {
         return taskStates[task]!!
     }
-
 
     fun schedule(tasks: List<InitializeTask>) {
         startTime = System.currentTimeMillis()
@@ -64,7 +63,7 @@ internal class InitializeTaskScheduler(
      */
     private fun schedule(task: InitializeTask): InitializeTaskScheduler {
         // 统一在主线程调度，防止多线程问题
-        scope.launch {
+        context.coroutineScope.launch {
             val state = taskStates[task]
             if (state == State.INIT) {
                 nextState(task)
@@ -75,26 +74,29 @@ internal class InitializeTaskScheduler(
     }
 
     private fun scheduleCurrent(task: InitializeTask) {
-        scope.launch {
+        context.coroutineScope.launch {
             val state = taskStates[task]
             // 准备就绪的任务才参与调度
             if (state == State.PREPARED && isIncomingFinished(task)) {
                 nextState(task)
-                if (taskInitializedCounter == 0 && !inited) {
-                    inited = true
-                    callback?.onInitializationStart(task)
+                if (taskInitializedCounter == 0 && !initialized) {
+                    initialized = true
+                    config.callback?.onInitializationStart(task)
                 }
-                callback?.onTaskStart(task)
+                config.callback?.onTaskStart(task)
                 measureTimeMillis {
-                    task.initialize(context)
+                    task.execute(context)
                 }.let {
-                    callback?.onTaskComplete(task, it)
+                    config.callback?.onTaskComplete(task, it)
                 }
                 mutexTaskInitializedCounter.withLock {
                     taskInitializedCounter++
                 }
                 if (taskInitializedCounter == allTasks.size) {
-                    callback?.onInitializationComplete(task, System.currentTimeMillis() - startTime)
+                    config.callback?.onInitializationComplete(
+                        task,
+                        System.currentTimeMillis() - startTime,
+                    )
                 }
                 nextState(task)
                 scheduleNext(task)
@@ -139,7 +141,9 @@ internal class InitializeTaskScheduler(
         /**
          * 完成
          */
-        FINISHED;
+        FINISHED,
+
+        ;
 
         /**
          * 进入下一个状态

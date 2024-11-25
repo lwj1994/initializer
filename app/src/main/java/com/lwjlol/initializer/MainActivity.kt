@@ -6,12 +6,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-
     fun TextView.appendd(s: String) {
         if (text.isNullOrBlank()) {
             text = s
         } else {
-            text = this.text.toString() + "\n\n" + s;
+            text = this.text.toString() + "\n\n" + s
         }
     }
 
@@ -22,70 +21,93 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btA).setOnClickListener {
             val textView = findViewById<TextView>(R.id.A)
             textView.text = ""
+
+            val config =
+                object : InitializeConfig(
+                    isDebug = true,
+                    callback =
+                    object : InitializeCallback {
+                        override fun onInitializationStart(firstTask: InitializeTask) {
+                            textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
+                        }
+
+                        override fun onTaskStart(task: InitializeTask) {
+                            textView.appendd("onTaskStart ${task::class.simpleName}, dependency ${task.dependencies.toList()}")
+                        }
+
+                        override fun onInitializationComplete(
+                            lastTask: InitializeTask,
+                            totalTimeConsuming: Long,
+                        ) {
+                            textView.appendd(
+                                "onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}",
+                            )
+                        }
+
+                        override fun onTaskComplete(
+                            task: InitializeTask,
+                            timeConsuming: Long,
+                        ) {
+                            textView.appendd(
+                                "onTaskComplete ${task::class.simpleName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms",
+                            )
+                        }
+                    },
+                ) {
+                    override fun isMainProcess(): Boolean {
+                        return true
+                    }
+                }
             Test.initializerA.init(
                 this,
-                debug = true,
-                onInitializationStart = { firstTask ->
-                    textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
-                },
-                onTaskStart = { task ->
-                    textView.appendd("onTaskStart ${task::class.simpleName}, dependency ${task.dependencies.toList()}")
-
-                },
-                onTaskComplete = { task, timeConsuming ->
-                    textView.appendd("onTaskComplete ${task::class.simpleName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms")
-
-                },
-                onInitializationComplete = { lastTask, totalTimeConsuming ->
-                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}")
-
-                }
+                config,
             )
         }
-
 
         findViewById<View>(R.id.btB).setOnClickListener {
             val textView = findViewById<TextView>(R.id.A)
             textView.text = ""
-            Test.initializerB.init(this, debug = true, callback = object : Callback {
-                override fun onInitializationStart(firstTask: InitializeTask) {
-                    textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
-                }
 
-                override fun onTaskStart(task: InitializeTask) {
-                    textView.appendd(
-                        "onTaskStart ${task::class.simpleName}, dependency ${
-                            task.dependencies.map {
-                                it.substringAfterLast(
-                                    '.'
-                                )
-                            }.toList()
-                        }"
-                    )
-                }
+            val config =
+                object : InitializeConfig(
+                    isDebug = true,
+                    callback =
+                    object : InitializeCallback {
+                        override fun onInitializationStart(firstTask: InitializeTask) {
+                            textView.appendd("onInitializationStart, first is ${firstTask::class.simpleName}")
+                        }
 
-                override fun onTaskComplete(task: InitializeTask, timeConsuming: Long) {
-                    textView.appendd(
-                        "onTaskComplete ${task::class.simpleName}, dependency ${
-                            task.dependencies.map {
-                                it.substringAfterLast(
-                                    '.'
-                                )
-                            }.toList()
-                        }, timeConsuming = $timeConsuming ms"
-                    )
-                }
+                        override fun onTaskStart(task: InitializeTask) {
+                            textView.appendd("onTaskStart ${task::class.simpleName}, dependency ${task.dependencies.toList()}")
+                        }
 
-                override fun onInitializationComplete(
-                    lastTask: InitializeTask,
-                    totalTimeConsuming: Long
+                        override fun onInitializationComplete(
+                            lastTask: InitializeTask,
+                            totalTimeConsuming: Long,
+                        ) {
+                            textView.appendd(
+                                "onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}",
+                            )
+                        }
+
+                        override fun onTaskComplete(
+                            task: InitializeTask,
+                            timeConsuming: Long,
+                        ) {
+                            textView.appendd(
+                                "onTaskComplete ${task::class.simpleName}, dependency ${task.dependencies.toList()}, timeConsuming = $timeConsuming ms",
+                            )
+                        }
+                    },
                 ) {
-                    textView.appendd("onInitializationComplete, $totalTimeConsuming ms, lastTask is ${lastTask::class.simpleName}")
+                    override fun isMainProcess(): Boolean {
+                        return true
+                    }
                 }
-
-            })
+            Test.initializerB.init(
+                this,
+                config = config,
+            )
         }
-
-
     }
 }

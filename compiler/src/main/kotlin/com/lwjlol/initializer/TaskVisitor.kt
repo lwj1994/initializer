@@ -10,15 +10,18 @@ import java.io.OutputStream
  * @author luwenjie on 2022/10/11 17:48:56
  */
 class TaskVisitor(val log: OutputStream?) : KSVisitorVoid() {
-
-    override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
+    override fun visitClassDeclaration(
+        classDeclaration: KSClassDeclaration,
+        data: Unit,
+    ) {
         classDeclaration.annotations.forEach {
             it.accept(this, Unit)
         }
         val className = classDeclaration.simpleName.getShortName()
-        val parameters = classDeclaration.getConstructors().maxByOrNull {
-            it.parameters.size
-        }?.parameters ?: return
+        val parameters =
+            classDeclaration.getConstructors().maxByOrNull {
+                it.parameters.size
+            }?.parameters ?: return
         classDeclaration.annotations.filter {
             it.annotationType.resolve().declaration.qualifiedName?.asString() == Task::class.qualifiedName
         }.forEach { annotation ->
@@ -27,13 +30,12 @@ class TaskVisitor(val log: OutputStream?) : KSVisitorVoid() {
                 argsMap[it.name?.asString() ?: ""] = it.value
                 log.emit(
                     "name:${it.name?.asString()},value:${it.value?.toString()},spread:${it.isSpread}",
-                    "$className:${annotation.shortName.asString()}  "
+                    "$className:${annotation.shortName.asString()}  ",
                 )
             }
             @Suppress("UNCHECKED_CAST")
             allTasks[classDeclaration.qualifiedName?.asString() ?: ""] =
                 argsMap["dependencies"] as List<KSType>
-
         }
     }
 

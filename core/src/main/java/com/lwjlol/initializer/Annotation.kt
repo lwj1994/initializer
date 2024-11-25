@@ -8,12 +8,11 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
 annotation class Task(
-    vararg val dependencies: KClass<out InitializeTask> = []
+    vararg val dependencies: KClass<out InitializeTask> = [],
 )
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
 annotation class Initialization(
-    vararg val tasks: KClass<out InitializeTask> = []
+    vararg val tasks: KClass<out InitializeTask> = [],
 )
-

@@ -8,29 +8,28 @@ import com.google.devtools.ksp.validate
 import java.io.IOException
 import java.io.OutputStream
 
-
 /**
  * @author luwenjie on 2022/2/21 20:21:50
  */
 class KspProcessor(
     val codeGenerator: CodeGenerator,
     val options: Map<String, String>,
-    val logger: KSPLogger
+    val logger: KSPLogger,
 ) : SymbolProcessor {
     var invoked = false
     var logFile: OutputStream? = null
-
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (invoked) return emptyList()
         allTasks.clear()
         if (LOG && !invoked) {
-            logFile = codeGenerator.createNewFile(
-                Dependencies(false),
-                "report/",
-                TAG,
-                "txt"
-            )
+            logFile =
+                codeGenerator.createNewFile(
+                    Dependencies(false),
+                    "report/",
+                    TAG,
+                    "txt",
+                )
         }
         logFile.emit("$TAG: init($options)", "")
         val initialization = Initialization::class.qualifiedName ?: ""
@@ -41,8 +40,9 @@ class KspProcessor(
         val taskSymbols =
             resolver.getSymbolsWithAnnotation(Task::class.qualifiedName ?: "")
 
-        val ret = initializationSymbols.filter { !it.validate() }
-            .toList() + taskSymbols.filter { !it.validate() }.toList()
+        val ret =
+            initializationSymbols.filter { !it.validate() }
+                .toList() + taskSymbols.filter { !it.validate() }.toList()
         logFile.emit("$TAG: process() ${initializationSymbols.count()} initializationSymbols", "")
         logFile.emit("$TAG: process() ${taskSymbols.count()} taskSymbols", "")
         logFile.emit("$TAG: process() ${resolver.getAllFiles().count()} AllFiles", "")
@@ -62,7 +62,6 @@ class KspProcessor(
         return ret
     }
 
-
     override fun finish() {
         super.finish()
         allTasks.clear()
@@ -73,7 +72,6 @@ class KspProcessor(
 }
 
 class KspProvider : SymbolProcessorProvider {
-
     companion object {
     }
 

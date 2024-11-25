@@ -11,9 +11,8 @@ import java.util.*
  */
 internal class DirectedAcyclicGraph<Node> private constructor(
     val debug: Boolean,
-    val graph: Map<Node, List<Node>?>
+    val graph: Map<Node, List<Node>?>,
 ) {
-
     init {
         if (debug) {
             checkCyclicDependencies()
@@ -38,9 +37,10 @@ internal class DirectedAcyclicGraph<Node> private constructor(
             // 当前顶点所有指向顶点入度-1，如果计算后为0，则加入栈中
             getOutgoingNodes(node)?.forEach { outgoing ->
                 // outgoing的已经无入度节点，入栈
-                val incomingVisited = getIncomingNodes(outgoing)?.let {
-                    visited.containsAll(it)
-                } ?: true
+                val incomingVisited =
+                    getIncomingNodes(outgoing)?.let {
+                        visited.containsAll(it)
+                    } ?: true
                 if (incomingVisited) {
                     stack.push(outgoing)
                 }
@@ -84,7 +84,6 @@ internal class DirectedAcyclicGraph<Node> private constructor(
      * @property graph MutableMap<Node, MutableList<Node>?>
      */
     class Builder<Node> {
-
         // DAG图（key-节点，value-入度节点）
         private val graph = mutableMapOf<Node, MutableList<Node>?>()
 
@@ -104,7 +103,10 @@ internal class DirectedAcyclicGraph<Node> private constructor(
          * @param nodeU Node
          * @param nodeV Node
          */
-        fun addEdge(nodeU: Node, nodeV: Node): Builder<Node> {
+        fun addEdge(
+            nodeU: Node,
+            nodeV: Node,
+        ): Builder<Node> {
             addNode(nodeU)
             addNode(nodeV)
             val incoming = graph[nodeV] ?: mutableListOf()
@@ -123,5 +125,4 @@ internal class DirectedAcyclicGraph<Node> private constructor(
             return DirectedAcyclicGraph(debug, graph)
         }
     }
-
 }
